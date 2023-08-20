@@ -2,9 +2,10 @@ import openai
 import pymysql
 import re
 import time
+import os
 
 # Set your OpenAI API key here
-openai.api_key = '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'
+openai.api_key = os.environ['gpt_parser']
 
 DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'

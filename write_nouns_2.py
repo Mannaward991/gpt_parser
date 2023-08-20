@@ -278,8 +278,8 @@ with conn.cursor() as cur:
                 # 0 - другие 1 - существительное 2 - прилогательное 3 - глагол 4 - местоимение 5 - наречие 6 - предлоги 7 - союзы 8 - частицы 9 - междометия 10 - причастие 11 - диепричастие
                 # INSERT INTO `words` (`word`, `word_web`, `language`, `part_of_speech`, `genus`) VALUES ('','','','','')
                 sql = "INSERT INTO `words` (`word`, `word_web`, `language`, `part_of_speech`, `genus`) VALUES ('%w','%s','%l','%p','%g')"
-                sql = sql.replace("%w", str(word))
-                sql = sql.replace("%s", str(word_without_art))
+                sql = sql.replace("%w", str(word_without_art))
+                sql = sql.replace("%s", str(word))
                 sql = sql.replace("%l", str(lang))
                 sql = sql.replace("%p", str(1))
                 if lang == 'fr-FR':

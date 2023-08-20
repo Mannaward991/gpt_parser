@@ -1,9 +1,49 @@
 import openai
 import time
 import os
+import deepl
+
 
 # Set your OpenAI API key here
 openai.api_key = os.environ['gpt_parser']
+
+
+def add_translation(word, lang_from, lang_to):
+
+    # Text translation options
+    # In addition to the input text(s) argument, the available translate_text() arguments are:
+    #
+    # source_lang: Specifies the source language code, but may be omitted to auto-detect the source language.
+    # target_lang: Required. Specifies the target language code.
+    # split_sentences: specify how input text should be split into sentences, default: 'on'.
+    # 'on'' (SplitSentences.ON): input text will be split into sentences using both newlines and punctuation.
+    # 'off' (SplitSentences.OFF): input text will not be split into sentences. Use this for applications where each input text contains only one sentence.
+    # 'nonewlines' (SplitSentences.NO_NEWLINES): input text will be split into sentences using punctuation but not newlines.
+    # preserve_formatting: controls automatic-formatting-correction. Set to True to prevent automatic-correction of formatting, default: False.
+    # formality: controls whether translations should lean toward informal or formal language. This option is only available for some target languages, see Listing available languages.
+    # 'less' (Formality.LESS): use informal language.
+    # 'more' (Formality.MORE): use formal, more polite language.
+    # glossary: specifies a glossary to use with translation, either as a string containing the glossary ID, or a GlossaryInfo as returned by get_glossary().
+    # tag_handling: type of tags to parse before translation, options are 'html' and 'xml'.
+    # The following options are only used if tag_handling is 'xml':
+    #
+    # outline_detection: specify False to disable automatic tag detection, default is True.
+    # splitting_tags: list of XML tags that should be used to split text into sentences. Tags may be specified as an array of strings (['tag1', 'tag2']), or a comma-separated list of strings ('tag1,tag2'). The default is an empty list.
+    # non_splitting_tags: list of XML tags that should not be used to split text into sentences. Format and default are the same as for splitting_tags.
+    # ignore_tags: list of XML tags that containing content that should not be translated. Format and default are the same as for splitting_tags.
+    # For a detailed explanation of the XML handling options, see the API documentation.
+
+    auth_key = os.environ['deepl_gpt_parser']
+    translator = deepl.Translator(auth_key)
+    result = translator.translate_text(
+        word,
+        source_lang=lang_from,  # 'DE'
+        target_lang=lang_to,  # 'RU'
+        split_sentences='nonewlines'
+        # formality='less'
+    )
+    translator.close()
+    return result.text
 
 
 # prompt = "Выбери все и только прилагательные из следуюшего текста так чтобы они не повторялись: \n \
