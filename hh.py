@@ -110,3 +110,6 @@ response = openai.Completion.create(
 generated_text = response.choices[0].text.strip()
 
 print(generated_text)
+
+# Французско русские слова по первому тексту
+# SELECT `texts_words`.`id_words_translation`, `words`.`word`, `words`.`word_web`, `translation`.`word`, `translation`.`word_web` FROM `texts_words` LEFT JOIN `words_translation` ON `texts_words`.`id_words_translation` = `words_translation`.`id` LEFT JOIN `words` ON `words_translation`.`id_word` = `words`.`id` LEFT JOIN `words` AS `translation` ON `words_translation`.`id_translation` = `translation`.`id` WHERE `texts_words`.`id_text` = '1' AND `words`.`language` = 'fr-FR' AND `translation`.`language` = 'ru-RU';
