@@ -4,6 +4,7 @@ import re
 import os
 
 # Set your OpenAI API key here
+# openai.api_key = os.environ['gpt_parser']
 openai.api_key = os.environ['gpt_parser']
 
 DB_HOST = 'localhost'

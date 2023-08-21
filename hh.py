@@ -5,7 +5,8 @@ import deepl
 
 
 # Set your OpenAI API key here
-openai.api_key = os.environ['gpt_parser']
+# openai.api_key = os.environ['gpt_parser']
+openai.api_key = os.environ['gpt_parser_m']
 
 
 def add_translation(word, lang_from, lang_to):

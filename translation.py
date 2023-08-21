@@ -6,12 +6,15 @@ import os
 import deepl
 
 # Set your OpenAI API key here
-openai.api_key = os.environ['gpt_parser']
+# openai.api_key = os.environ['gpt_parser']
+openai.api_key = os.environ['gpt_parser_m']
 
 DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'
 USER_NAME = 'root'
 PASSWORD = ''
+
+# UPDATE `texts` SET `ready_words`='0' WHERE `id` > '4'
 
 
 def add_translation(word, lang_from, lang_to):
@@ -212,7 +215,18 @@ with conn.cursor() as cur:
                 word_web = row[5]
                 part_of_speech = row[6]
 
-                translation = add_translation(word, target_lang_to_supported_from(lang), target_lang_to_supported_to(lang_to))
+                fin = False
+
+                if word == '':
+                    if word_web == '':
+                        continue
+                    else:
+                        translation = add_translation(word_web, target_lang_to_supported_from(lang), target_lang_to_supported_to(lang_to))
+                else:
+                    translation = add_translation(word, target_lang_to_supported_from(lang),target_lang_to_supported_to(lang_to))
+
+                translation = translation.replace("'", "\\'")
+                translation = translation.replace("\n", '')
 
                 for word_to in words_to:
                     if translation == word_to['word'] or translation == word_to['word_web']:
@@ -275,32 +289,37 @@ with conn.cursor() as cur:
                         cur.execute(sql)
                         conn.commit()
 
-                # не нашли совпадение
-                sql = "INSERT INTO `words`(`word`, `word_web`, `language`, `part_of_speech`, `genus`) VALUES ('%wm','%ww','%l','%p','')"
-                sql = sql.replace("%wm", str(translation))
-                sql = sql.replace("%ww", str(translation))
-                sql = sql.replace("%l", str(lang_to))
-                sql = sql.replace("%p", str(part_of_speech))
-                cur.execute(sql)
-                conn.commit()
+                        fin = True
 
-                sql = "SELECT `id` FROM `words` WHERE `word` = '%wm' AND `word_web` = '%ww' AND `language` = '%l' \
-                AND `part_of_speech` = '%p' ORDER BY `id` DESC LIMIT 1"
-                sql = sql.replace("%wm", str(translation))
-                sql = sql.replace("%ww", str(translation))
-                sql = sql.replace("%l", str(lang_to))
-                sql = sql.replace("%p", str(part_of_speech))
+                if not fin:
+                    # не нашли совпадение
+                    sql = "INSERT INTO `words`(`word`, `word_web`, `language`, `part_of_speech`, `genus`) VALUES ('%wm','%ww','%l','%p','')"
+                    sql = sql.replace("%wm", str(translation))
+                    sql = sql.replace("%ww", str(translation))
+                    sql = sql.replace("%l", str(lang_to))
+                    sql = sql.replace("%p", str(part_of_speech))
+                    print(sql)
+                    cur.execute(sql)
+                    conn.commit()
 
-                cur.execute(sql)
-                result = cur.fetchall()
-                for row in result:
-                    new_word_id = row[0]
+                    sql = "SELECT `id` FROM `words` WHERE `word` = '%wm' AND `word_web` = '%ww' AND `language` = '%l' \
+                    AND `part_of_speech` = '%p' ORDER BY `id` DESC LIMIT 1"
+                    sql = sql.replace("%wm", str(translation))
+                    sql = sql.replace("%ww", str(translation))
+                    sql = sql.replace("%l", str(lang_to))
+                    sql = sql.replace("%p", str(part_of_speech))
+                    print(sql)
+                    cur.execute(sql)
+                    result = cur.fetchall()
+                    for row in result:
+                        new_word_id = row[0]
 
-                sql = "INSERT INTO `words_translation`(`id_word`, `id_translation`) VALUES ('%id','%t')"
-                sql = sql.replace("%id", str(word_id))
-                sql = sql.replace("%t", str(new_word_id))
-                cur.execute(sql)
-                conn.commit()
+                    sql = "INSERT INTO `words_translation`(`id_word`, `id_translation`) VALUES ('%id','%t')"
+                    sql = sql.replace("%id", str(word_id))
+                    sql = sql.replace("%t", str(new_word_id))
+                    print(sql)
+                    cur.execute(sql)
+                    conn.commit()
 
         sql = "UPDATE `texts` SET `ready_words`='1' WHERE `id` = '%id'"
         sql = sql.replace("%id", str(text_id))

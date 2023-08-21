@@ -5,12 +5,15 @@ import time
 import os
 
 # Set your OpenAI API key here
-openai.api_key = os.environ['gpt_parser']
+# openai.api_key = os.environ['gpt_parser']
+openai.api_key = os.environ['gpt_parser_m']
 
 DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'
 USER_NAME = 'root'
 PASSWORD = ''
+
+# UPDATE `texts` SET `ready_words`='0' WHERE `id` > '4'
 
 
 def has_dispersed_spaces(text, symbol, plus_count):

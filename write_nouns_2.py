@@ -5,12 +5,15 @@ import time
 import os
 
 # Set your OpenAI API key here
-openai.api_key = os.environ['gpt_parser']
+# openai.api_key = os.environ['gpt_parser']
+openai.api_key = os.environ['gpt_parser_m']
 
 DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'
 USER_NAME = 'root'
 PASSWORD = ''
+
+# UPDATE `texts` SET `ready_words`='0' WHERE `id` > '4'
 
 
 def has_dispersed_spaces(text, symbol, plus_count):
@@ -253,6 +256,8 @@ with conn.cursor() as cur:
                         if word.startswith(art):
                             art_word = art
                             word_without_art = word.replace(art, '')
+                if word_without_art == '':
+                    word_without_art = word
 
                 word = word.replace("'", "\\'")
                 new_words.append({'word': word, 'art_word': art_word, 'word_without_art': word_without_art})
@@ -261,6 +266,9 @@ with conn.cursor() as cur:
             word = new_word['word']
             art_word = new_word['art_word']
             word_without_art = new_word['word_without_art']
+
+            if word == '':
+                word = word_without_art
 
             # SELECT `id` FROM `words` WHERE `word` = ''
             sql = "SELECT `id` FROM `words` WHERE `word` = '%w'"
@@ -307,7 +315,7 @@ with conn.cursor() as cur:
                 conn.commit()
 
                 # SELECT `id` FROM `words` WHERE `word` = ''
-                sql = "SELECT `id` FROM `words` WHERE `word` = '%w'"
+                sql = "SELECT `id` FROM `words` WHERE `word_web` = '%w'"
                 sql = sql.replace("%w", word)
 
                 cur.execute(sql)

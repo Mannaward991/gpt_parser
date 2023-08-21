@@ -5,7 +5,8 @@ import time
 import os
 
 # Set your OpenAI API key here
-openai.api_key = os.environ['gpt_parser']
+# openai.api_key = os.environ['gpt_parser']
+openai.api_key = os.environ['gpt_parser_m']
 
 DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'
