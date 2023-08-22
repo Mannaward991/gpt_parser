@@ -4,6 +4,8 @@ import re
 import time
 import os
 
+disable_translation = True
+
 # Set your OpenAI API key here
 # openai.api_key = os.environ['gpt_parser']
 openai.api_key = os.environ['gpt_parser_m']
@@ -12,8 +14,6 @@ DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'
 USER_NAME = 'root'
 PASSWORD = ''
-
-# UPDATE `texts` SET `ready_words`='0' WHERE `id` > '4'
 
 
 def has_dispersed_spaces(text, symbol, plus_count):
@@ -65,7 +65,7 @@ conn = pymysql.connect(host=DB_HOST, user=USER_NAME, passwd=PASSWORD, db=DB_NAME
 
 with conn.cursor() as cur:
     # SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '0'
-    sql = "SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '0'"
+    sql = "SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '1'"
     cur.execute(sql)
     result = cur.fetchall()
     for row in result:
@@ -75,7 +75,7 @@ with conn.cursor() as cur:
     for i in range(count):
 
         sql = "SELECT `id`, `text`, `text_web`, `language`, `path`, `ready`, `ready_words` \
-        FROM `texts` WHERE  `ready_words` = '0' ORDER BY `id` ASC LIMIT 1"
+        FROM `texts` WHERE  `ready_words` = '1' ORDER BY `id` ASC LIMIT 1"
 
         cur.execute(sql)
         result = cur.fetchall()  # fetchall_unbuffered()
@@ -267,17 +267,24 @@ with conn.cursor() as cur:
             art_word = new_word['art_word']
             word_without_art = new_word['word_without_art']
 
-            if word == '':
+            if not word or word == '':
                 word = word_without_art
+            elif not word_without_art or word_without_art == '':
+                word_without_art = word
 
             # SELECT `id` FROM `words` WHERE `word` = ''
             sql = "SELECT `id` FROM `words` WHERE `word` = '%w'"
-            sql = sql.replace("%w", word)
+            sql = sql.replace("%w", word_without_art)
+
+            print(sql)
 
             id_w = False
 
             cur.execute(sql)
             result = cur.fetchall()
+
+            print(result)
+
             for row in result:
                 id_w = int(row[0])
 
@@ -322,25 +329,39 @@ with conn.cursor() as cur:
                 result = cur.fetchall()
                 for row in result:
                     id_w = int(row[0])
+            else:
+                print('Old words: ' + str(id_w))
 
-            languages = ['ru-RU', 'de-DE', 'en-EN', 'fr-FR']
-            for languag in languages:
-                if languag == lang:
-                    continue
-                # INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('','','')
-                sql = "INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('%wi', '%ti', '%l')"
+            print('ID: ' + str(id_w))
 
-                sql = sql.replace("%wi", str(id_w))
-                sql = sql.replace("%ti", str(id_text))
-                sql = sql.replace("%l", str(languag))
+            sql = "INSERT INTO `texts_words_2`(`id_text`, `id_word`) VALUES ('%t','%w')"
+            sql = sql.replace("%w", str(id_w))
+            sql = sql.replace("%t", str(id_text))
 
-                print(sql)
+            # print(sql)
 
-                cur.execute(sql)
-                conn.commit()
+            cur.execute(sql)
+            conn.commit()
+
+            if not disable_translation:
+                languages = ['ru-RU', 'de-DE', 'en-EN', 'fr-FR']
+                for languag in languages:
+                    if languag == lang:
+                        continue
+                    # INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('','','')
+                    sql = "INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('%wi', '%ti', '%l')"
+
+                    sql = sql.replace("%wi", str(id_w))
+                    sql = sql.replace("%ti", str(id_text))
+                    sql = sql.replace("%l", str(languag))
+
+                    print(sql)
+
+                    cur.execute(sql)
+                    conn.commit()
 
         # UPDATE `sentences` SET `ready`='1' WHERE `id` = '%id'
-        sql = "UPDATE `texts` SET `ready_words`='1' WHERE `id` = '%id'"
+        sql = "UPDATE `texts` SET `ready_words`='2' WHERE `id` = '%id'"
         sql = sql.replace("%id", str(id_text))
         cur.execute(sql)
         conn.commit()

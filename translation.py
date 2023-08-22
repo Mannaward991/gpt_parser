@@ -14,8 +14,6 @@ DB_NAME = 'gpt_parser'
 USER_NAME = 'root'
 PASSWORD = ''
 
-# UPDATE `texts` SET `ready_words`='0' WHERE `id` > '4'
-
 
 def add_translation(word, lang_from, lang_to):
 
@@ -141,7 +139,7 @@ with conn.cursor() as cur:
     while number_of_unfinished_texts(conn):
 
         sql = "SELECT `id`, `text`, `text_web`, `language`, `path`, `ready`, `ready_words` \
-                FROM `texts` WHERE  `ready_words` = '0' ORDER BY `id` ASC LIMIT 1"
+                FROM `texts` WHERE  `ready_words` = '4' ORDER BY `id` ASC LIMIT 1"
 
         cur.execute(sql)
         result = cur.fetchall()
@@ -293,26 +291,40 @@ with conn.cursor() as cur:
 
                 if not fin:
                     # не нашли совпадение
-                    sql = "INSERT INTO `words`(`word`, `word_web`, `language`, `part_of_speech`, `genus`) VALUES ('%wm','%ww','%l','%p','')"
-                    sql = sql.replace("%wm", str(translation))
-                    sql = sql.replace("%ww", str(translation))
-                    sql = sql.replace("%l", str(lang_to))
-                    sql = sql.replace("%p", str(part_of_speech))
-                    print(sql)
-                    cur.execute(sql)
-                    conn.commit()
 
-                    sql = "SELECT `id` FROM `words` WHERE `word` = '%wm' AND `word_web` = '%ww' AND `language` = '%l' \
-                    AND `part_of_speech` = '%p' ORDER BY `id` DESC LIMIT 1"
-                    sql = sql.replace("%wm", str(translation))
-                    sql = sql.replace("%ww", str(translation))
-                    sql = sql.replace("%l", str(lang_to))
-                    sql = sql.replace("%p", str(part_of_speech))
-                    print(sql)
+                    # SELECT `id` FROM `words` WHERE `word` = ''
+                    sql = "SELECT `id` FROM `words` WHERE `word` = '%w'"
+                    sql = sql.replace("%w", str(translation))
+
+                    new_word_id = False
+
                     cur.execute(sql)
                     result = cur.fetchall()
                     for row in result:
-                        new_word_id = row[0]
+                        new_word_id = int(row[0])
+
+                    if not new_word_id or new_word_id == 0:
+
+                        sql = "INSERT INTO `words`(`word`, `word_web`, `language`, `part_of_speech`, `genus`) VALUES ('%wm','%ww','%l','%p','')"
+                        sql = sql.replace("%wm", str(translation))
+                        sql = sql.replace("%ww", str(translation))
+                        sql = sql.replace("%l", str(lang_to))
+                        sql = sql.replace("%p", str(part_of_speech))
+                        print(sql)
+                        cur.execute(sql)
+                        conn.commit()
+
+                        sql = "SELECT `id` FROM `words` WHERE `word` = '%wm' AND `word_web` = '%ww' AND `language` = '%l' \
+                        AND `part_of_speech` = '%p' ORDER BY `id` DESC LIMIT 1"
+                        sql = sql.replace("%wm", str(translation))
+                        sql = sql.replace("%ww", str(translation))
+                        sql = sql.replace("%l", str(lang_to))
+                        sql = sql.replace("%p", str(part_of_speech))
+                        print(sql)
+                        cur.execute(sql)
+                        result = cur.fetchall()
+                        for row in result:
+                            new_word_id = row[0]
 
                     sql = "INSERT INTO `words_translation`(`id_word`, `id_translation`) VALUES ('%id','%t')"
                     sql = sql.replace("%id", str(word_id))
@@ -321,7 +333,7 @@ with conn.cursor() as cur:
                     cur.execute(sql)
                     conn.commit()
 
-        sql = "UPDATE `texts` SET `ready_words`='1' WHERE `id` = '%id'"
+        sql = "UPDATE `texts` SET `ready_words`='5' WHERE `id` = '%id'"
         sql = sql.replace("%id", str(text_id))
         cur.execute(sql)
         conn.commit()

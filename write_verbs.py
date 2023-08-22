@@ -4,6 +4,8 @@ import re
 import time
 import os
 
+disable_translation = True
+
 # Set your OpenAI API key here
 # openai.api_key = os.environ['gpt_parser']
 openai.api_key = os.environ['gpt_parser_m']
@@ -12,8 +14,6 @@ DB_HOST = 'localhost'
 DB_NAME = 'gpt_parser'
 USER_NAME = 'root'
 PASSWORD = ''
-
-# UPDATE `texts` SET `ready_words`='0' WHERE `id` > '4'
 
 
 def has_dispersed_spaces(text, symbol, plus_count):
@@ -64,8 +64,8 @@ def generated_text_to_words(generated_text):
 conn = pymysql.connect(host=DB_HOST, user=USER_NAME, passwd=PASSWORD, db=DB_NAME, connect_timeout=5)
 
 with conn.cursor() as cur:
-    # SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '0'
-    sql = "SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '0'"
+    # SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '3'
+    sql = "SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '3'"
     cur.execute(sql)
     result = cur.fetchall()
     for row in result:
@@ -75,7 +75,7 @@ with conn.cursor() as cur:
     for i in range(count):
 
         sql = "SELECT `id`, `text`, `text_web`, `language`, `path`, `ready`, `ready_words` \
-        FROM `texts` WHERE  `ready_words` = '0' ORDER BY `id` ASC LIMIT 1"
+        FROM `texts` WHERE  `ready_words` = '3' ORDER BY `id` ASC LIMIT 1"
 
         cur.execute(sql)
         result = cur.fetchall()  # fetchall_unbuffered()
@@ -156,24 +156,34 @@ with conn.cursor() as cur:
                 for row in result:
                     id_w = int(row[0])
 
-            languages = ['ru-RU', 'de-DE', 'en-EN', 'fr-FR']
-            for languag in languages:
-                if languag == lang:
-                    continue
-                # INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('','','')
-                sql = "INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('%wi', '%ti', '%l')"
+            sql = "INSERT INTO `texts_words_2`(`id_text`, `id_word`) VALUES ('%t','%w')"
+            sql = sql.replace("%w", str(id_w))
+            sql = sql.replace("%t", str(id_text))
 
-                sql = sql.replace("%wi", str(id_w))
-                sql = sql.replace("%ti", str(id_text))
-                sql = sql.replace("%l", str(languag))
+            # print(sql)
 
-                print(sql)
+            cur.execute(sql)
+            conn.commit()
 
-                cur.execute(sql)
-                conn.commit()
+            if not disable_translation:
+                languages = ['ru-RU', 'de-DE', 'en-EN', 'fr-FR']
+                for languag in languages:
+                    if languag == lang:
+                        continue
+                    # INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('','','')
+                    sql = "INSERT INTO `words_buffer`(`word_id`, `text_id`, `language`) VALUES ('%wi', '%ti', '%l')"
+
+                    sql = sql.replace("%wi", str(id_w))
+                    sql = sql.replace("%ti", str(id_text))
+                    sql = sql.replace("%l", str(languag))
+
+                    print(sql)
+
+                    cur.execute(sql)
+                    conn.commit()
 
         # UPDATE `sentences` SET `ready`='1' WHERE `id` = '%id'
-        sql = "UPDATE `texts` SET `ready_words`='1' WHERE `id` = '%id'"
+        sql = "UPDATE `texts` SET `ready_words`='4' WHERE `id` = '%id'"
         sql = sql.replace("%id", str(id_text))
         cur.execute(sql)
         conn.commit()
