@@ -1,7 +1,6 @@
 import openai
 import pymysql
 import re
-import time
 import os
 import deepl
 
@@ -122,8 +121,8 @@ def generated_text_to_words(generated_text):
 
 def number_of_unfinished_texts(conn):
     with conn.cursor() as cur:
-        # SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '0'
-        sql = "SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '0'"
+        # SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '4'
+        sql = "SELECT COUNT(*) FROM `texts` WHERE `ready_words` = '4'"
         cur.execute(sql)
         result = cur.fetchall()
         for row in result:
